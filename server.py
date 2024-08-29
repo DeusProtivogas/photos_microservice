@@ -41,18 +41,33 @@ async def archive(request):
         cwd=archive_path
     )
 
-    while True:
-        logging.info(u'Sending archive chunk ...')
-        chunk = await process.stdout.read(chunk_size_kb * 1024)
-        if not chunk:
-            break
-        await response.write(chunk)
+    try:
+        while True:
 
-    await process.wait()
+            logging.info(u'Sending archive chunk ...')
+            chunk = await process.stdout.read(chunk_size_kb * 1024)
+            if not chunk:
+                break
 
-    if process.returncode != 0:
-        error_output = await process.stderr.read()
-        raise RuntimeError(f"Error creating archive: {error_output.decode()}")
+            await response.write(chunk)
+            await asyncio.sleep(2)
+
+    except asyncio.CancelledError:
+        logging.info('Скачивание прервано, завершение процесса zip...')
+        process.kill()  # Завершение процесса zip
+        raise
+
+    except Exception as e:
+        logging.error(f'Ошибка при создании архива: {e}')
+        process.kill()  # Завершение процесса zip
+        raise
+
+    finally:
+        await process.wait()  # Ожидание завершения процесса
+        if process.returncode != 0:
+            error_output = await process.stderr.read()
+            raise RuntimeError(f"Ошибка создания архива: {error_output.decode()}")
+
 
     return response
 
