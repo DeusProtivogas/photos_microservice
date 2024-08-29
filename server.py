@@ -1,3 +1,4 @@
+import argparse
 import os
 from aiohttp import web
 import aiofiles
@@ -6,14 +7,30 @@ import datetime
 import logging
 
 INTERVAL_SECS = 1
-logging.basicConfig(level = logging.DEBUG)
+# logging.basicConfig(level = logging.DEBUG)
 chunk_size_kb = 1
 
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Настройки микросервиса")
+
+    parser.add_argument('--log-level', type=str, default=os.getenv('LOG_LEVEL', 'INFO'),
+                        help="Уровень логирования (DEBUG, INFO, WARNING, ERROR)")
+    parser.add_argument('--delay', type=int, default=int(os.getenv('DELAY', 0)),
+                        help="Задержка ответа в секундах")
+    parser.add_argument('--photo-dir', type=str, default=os.getenv('PHOTO_DIR', 'test_photos'),
+                        help="Путь к каталогу с фотографиями")
+
+    return parser.parse_args()
+
+
+args = parse_args()
+logging.basicConfig(level=getattr(logging, args.log_level.upper(), None))
 
 async def archive(request):
     archive_hash = request.match_info.get('archive_hash')
     print(archive_hash)
-    archive_path = os.path.join(f'test_photos', archive_hash)
+    archive_path = os.path.join(args.photo_dir, archive_hash)
 
     print(f"Archive path: {archive_path}")
     print(f"Current working directory: {os.getcwd()}")
@@ -50,7 +67,8 @@ async def archive(request):
                 break
 
             await response.write(chunk)
-            await asyncio.sleep(2)
+            if args.delay:
+                await asyncio.sleep(args.delay)
 
     except asyncio.CancelledError:
         logging.info('Скачивание прервано, завершение процесса zip...')
