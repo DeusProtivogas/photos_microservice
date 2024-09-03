@@ -27,7 +27,11 @@ def parse_args():
 # logging.basicConfig(level=getattr(logging, args.log_level.upper(), None))
 
 async def archive(request):
-    archive_hash = request.match_info.get('archive_hash')
+    try:
+        archive_hash = request.match_info.get('archive_hash')
+    except Exception as e:
+        return web.Response(status=404, text='Архив не существует или был удален')
+
     archive_path = os.path.join(args.photo_dir, archive_hash)
 
     if not os.path.exists(archive_path):
