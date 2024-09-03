@@ -23,8 +23,8 @@ def parse_args():
     return parser.parse_args()
 
 
-args = parse_args()
-logging.basicConfig(level=getattr(logging, args.log_level.upper(), None))
+# args = parse_args()
+# logging.basicConfig(level=getattr(logging, args.log_level.upper(), None))
 
 async def archive(request):
     archive_hash = request.match_info.get('archive_hash')
@@ -107,6 +107,9 @@ async def handle_index_page(request):
 
 
 if __name__ == '__main__':
+    global args
+    args = parse_args()
+    logging.basicConfig(level=getattr(logging, args.log_level.upper(), None))
     app = web.Application()
     app.add_routes([
         web.get('/', handle_index_page),
