@@ -22,10 +22,6 @@ def parse_args():
 
     return parser.parse_args()
 
-
-# args = parse_args()
-# logging.basicConfig(level=getattr(logging, args.log_level.upper(), None))
-
 async def archive(request):
     try:
         archive_hash = request.match_info.get('archive_hash')
@@ -65,26 +61,19 @@ async def archive(request):
 
     except asyncio.CancelledError:
         logging.info('Скачивание прервано, завершение процесса zip...')
-        # process.kill()  # Завершение процесса zip
-        # outs, errs = process.communicate()
         raise
 
     except RuntimeError:
         logging.error(f'CTRL C: {e}')
-        # process.kill()
-        # outs, errs = process.communicate()
         raise
 
     except Exception as e:
         logging.error(f'Ошибка при создании архива: {e}')
-        # process.kill()  # Завершение процесса zip
-        # outs, errs = process.communicate()
         raise
 
     finally:
-        process.kill()  # Завершение процесса zip
-        # outs, errs = process.communicate()
-        await process.wait()  # Ожидание завершения процесса
+        process.kill()
+        await process.wait()
         if process.returncode != 0:
             error_output = await process.stderr.read()
             raise RuntimeError(f"Ошибка создания архива: {error_output.decode()}")
