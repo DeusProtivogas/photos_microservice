@@ -61,23 +61,28 @@ async def archive(request):
 
     except asyncio.CancelledError:
         logging.info('Скачивание прервано, завершение процесса zip...')
+        # process.kill()
+        # await process.wait()
         raise
 
     except RuntimeError:
         logging.error(f'CTRL C: {e}')
+        # process.kill()
+        # await process.wait()
         raise
 
     except Exception as e:
         logging.error(f'Ошибка при создании архива: {e}')
         raise
 
+
     finally:
-        process.kill()
-        await process.wait()
+        if process.returncode is None:
+            process.kill()
+            await process.wait()
         if process.returncode != 0:
             error_output = await process.stderr.read()
             raise RuntimeError(f"Ошибка создания архива: {error_output.decode()}")
-
 
     return response
 
