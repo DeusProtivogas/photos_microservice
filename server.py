@@ -23,10 +23,7 @@ def parse_args():
     return parser.parse_args()
 
 async def archive(request):
-    try:
-        archive_hash = request.match_info.get('archive_hash')
-    except Exception as e:
-        return web.Response(status=404, text='Архив не существует или был удален')
+    archive_hash = request.match_info['archive_hash']
 
     archive_path = os.path.join(args.photo_dir, archive_hash)
 
