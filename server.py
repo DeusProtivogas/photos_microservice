@@ -63,24 +63,22 @@ async def archive(request):
         logging.info('Скачивание прервано, завершение процесса zip...')
         # process.kill()
         # await process.wait()
-        raise
+        # raise
 
     except RuntimeError:
         logging.error(f'CTRL C: {e}')
         # process.kill()
-        # await process.wait()
+        await process.wait()
         raise
 
     except Exception as e:
         logging.error(f'Ошибка при создании архива: {e}')
+        await process.wait()
         raise
 
-
     finally:
-        if process.returncode is None:
-            process.kill()
-            await process.wait()
         if process.returncode != 0:
+            process.kill()
             error_output = await process.stderr.read()
             raise RuntimeError(f"Ошибка создания архива: {error_output.decode()}")
 
