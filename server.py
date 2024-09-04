@@ -81,20 +81,6 @@ async def archive(request):
 
     return response
 
-
-async def uptime_handler(request):
-    response = web.StreamResponse()
-    response.headers['Content-Type'] = 'text/html'
-    await response.prepare(request)
-
-    while True:
-        formatted_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        message = f'{formatted_date}<br>'  # <br> — HTML тег переноса строки
-        await response.write(message.encode('utf-8'))
-
-        await asyncio.sleep(INTERVAL_SECS)
-
-
 async def handle_index_page(request):
     async with aiofiles.open('index.html', mode='r', encoding='utf-8') as index_file:
         index_contents = await index_file.read()
